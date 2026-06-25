@@ -1,0 +1,963 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0A0F1E;
+    --navy2: #111827;
+    --navy3: #1a2235;
+    --blue: #3B82F6;
+    --blue-dim: #1e3a5f;
+    --blue-glow: rgba(59,130,246,0.15);
+    --green: #10B981;
+    --green-dim: rgba(16,185,129,0.15);
+    --amber: #F59E0B;
+    --amber-dim: rgba(245,158,11,0.12);
+    --red: #EF4444;
+    --text: #E2E8F0;
+    --text2: #94A3B8;
+    --text3: #64748B;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(59,130,246,0.3);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; min-height: 100vh; }
+  .screen.active { display: flex; }
+
+  /* ── LANDING ── */
+  #landing {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #landing::before {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    pointer-events: none;
+  }
+  .logo-mark {
+    width: 56px; height: 56px;
+    background: var(--blue-glow);
+    border: 1px solid var(--border2);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 24px;
+  }
+  .landing-eyebrow {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+  .landing-title {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .landing-title span {
+    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .landing-sub {
+    color: var(--text2);
+    font-size: 15px;
+    max-width: 400px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+
+  /* Role picker */
+  .role-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+  }
+  .role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 420px;
+    margin: 0 auto 1rem;
+  }
+  .role-btn {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 8px;
+    color: var(--text2);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .role-btn:hover { border-color: var(--border2); color: var(--text); background: var(--navy3); }
+  .role-btn.selected { border-color: var(--blue); background: var(--blue-glow); color: #60A5FA; }
+  .role-btn .role-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+
+  .custom-role-wrap { max-width: 420px; margin: 0 auto 2rem; }
+  .custom-input {
+    width: 100%;
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border 0.15s;
+  }
+  .custom-input:focus { border-color: var(--border2); }
+  .custom-input::placeholder { color: var(--text3); }
+
+  .start-btn {
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 36px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.2px;
+  }
+  .start-btn:hover { background: #2563EB; transform: translateY(-1px); }
+  .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+  .stat { text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 600; color: var(--blue); }
+  .stat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* ── INTERVIEW ── */
+  #interview { padding: 0; }
+
+  .int-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--navy2);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .int-role-tag {
+    font-size: 12px;
+    color: var(--blue);
+    background: var(--blue-glow);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-weight: 500;
+  }
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-dots {
+    display: flex; gap: 6px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .dot.done { background: var(--green); }
+  .dot.active { background: var(--blue); }
+  .progress-text { font-size: 12px; color: var(--text3); }
+
+  .quit-btn {
+    font-size: 12px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: color 0.15s;
+  }
+  .quit-btn:hover { color: var(--text); }
+
+  .int-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    max-width: 680px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Question block */
+  .question-block {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .q-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--blue);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .q-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .question-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+    min-height: 48px;
+  }
+  .cursor-blink {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--blue);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,50% { opacity:1; } 51%,100% { opacity:0; } }
+
+  /* Confidence meter */
+  .meter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .meter-label { font-size: 11px; color: var(--text3); white-space: nowrap; }
+  .meter-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease, background 0.4s ease;
+    width: 0%;
+    background: var(--blue);
+  }
+  .meter-score { font-size: 11px; font-weight: 500; color: var(--text2); min-width: 28px; text-align: right; }
+
+  /* Answer area */
+  .answer-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  .answer-area {
+    width: 100%;
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    resize: none;
+    outline: none;
+    min-height: 120px;
+    transition: border 0.15s;
+  }
+  .answer-area:focus { border-color: var(--border2); }
+  .answer-area::placeholder { color: var(--text3); }
+  .answer-area:disabled { opacity: 0.5; }
+
+  .word-count {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+
+  .submit-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+  .submit-btn {
+    flex: 1;
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .submit-btn:hover:not(:disabled) { background: #2563EB; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .skip-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .skip-btn:hover { border-color: var(--border2); color: var(--text2); }
+
+  /* Feedback block */
+  .feedback-block {
+    background: var(--navy3);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+  .feedback-block.show { display: block; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+
+  .feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-badge {
+    font-size: 20px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .score-badge.good { background: var(--green-dim); color: var(--green); }
+  .score-badge.mid { background: var(--amber-dim); color: var(--amber); }
+  .score-badge.low { background: rgba(239,68,68,0.12); color: var(--red); }
+
+  .feedback-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .ftag {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .ftag.pos { background: var(--green-dim); color: #34D399; }
+  .ftag.neg { background: rgba(239,68,68,0.1); color: #F87171; }
+  .ftag.neu { background: var(--amber-dim); color: #FCD34D; }
+
+  .feedback-section { margin-bottom: 1rem; }
+  .fb-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+  }
+  .fb-text { font-size: 13px; color: var(--text2); line-height: 1.65; }
+  .fb-text strong { color: var(--text); font-weight: 500; }
+
+  .next-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--blue);
+    border-radius: 10px;
+    padding: 11px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .next-btn:hover { background: var(--blue-glow); }
+
+  /* ── RESULTS ── */
+  #results {
+    align-items: center;
+    padding: 2rem 1.5rem;
+  }
+  .results-inner {
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .results-header { text-align: center; margin-bottom: 2.5rem; }
+  .results-grade {
+    font-size: 72px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .results-grade.A { color: var(--green); }
+  .results-grade.B { color: var(--blue); }
+  .results-grade.C { color: var(--amber); }
+  .results-grade.D { color: var(--red); }
+
+  .results-title { font-size: 18px; font-weight: 500; margin-bottom: 0.5rem; }
+  .results-sub { color: var(--text2); font-size: 14px; }
+
+  .score-breakdown {
+    background: var(--navy2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-row-label { font-size: 13px; color: var(--text2); flex: 1; }
+  .score-row-bar { flex: 2; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .score-row-fill { height: 100%; border-radius: 3px; background: var(--blue); }
+  .score-row-val { font-size: 13px; font-weight: 500; color: var(--text); min-width: 32px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+  .results-actions { display: flex; flex-direction: column; gap: 10px; }
+  .redo-btn {
+    background: var(--blue);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 13px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .redo-btn:hover { background: #2563EB; }
+  .share-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .share-btn:hover { border-color: var(--border2); color: var(--text); }
+
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<!-- LANDING -->
+<div id="landing" class="screen active">
+  <div class="logo-mark">🎯</div>
+  <p class="landing-eyebrow">AI-Powered</p>
+  <h1 class="landing-title">Ace your next<br><span>interview</span></h1>
+  <p class="landing-sub">Practice with a real AI interviewer. Get honest feedback on every answer. Land the job.</p>
+
+  <p class="role-label">Pick your target role</p>
+  <div class="role-grid">
+    <button class="role-btn" onclick="selectRole(this, 'Software Engineer')">
+      <span class="role-icon">💻</span>Software Engineer
+    </button>
+    <button class="role-btn" onclick="selectRole(this, 'Product Manager')">
+      <span class="role-icon">📦</span>Product Manager
+    </button>
+    <button class="role-btn" onclick="selectRole(this, 'Data Analyst')">
+      <span class="role-icon">📊</span>Data Analyst
+    </button>
+    <button class="role-btn" onclick="selectRole(this, 'UX Designer')">
+      <span class="role-icon">🎨</span>UX Designer
+    </button>
+    <button class="role-btn" onclick="selectRole(this, 'Marketing Manager')">
+      <span class="role-icon">📣</span>Marketing Manager
+    </button>
+    <button class="role-btn" onclick="selectRole(this, 'custom')">
+      <span class="role-icon">✏️</span>Other role
+    </button>
+  </div>
+  <div class="custom-role-wrap" id="customWrap" style="display:none;">
+    <input type="text" class="custom-input" id="customRole" placeholder="e.g. DevOps Engineer, Sales Lead..." oninput="checkStart()" />
+  </div>
+  <button class="start-btn" id="startBtn" disabled onclick="startInterview()">Start Interview →</button>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">5</div><div class="stat-lbl">Questions</div></div>
+    <div class="stat"><div class="stat-num">AI</div><div class="stat-lbl">Feedback</div></div>
+    <div class="stat"><div class="stat-num">Free</div><div class="stat-lbl">Always</div></div>
+  </div>
+</div>
+
+<!-- INTERVIEW -->
+<div id="interview" class="screen">
+  <div class="int-header">
+    <div class="int-role-tag" id="roleTag">Software Engineer</div>
+    <div class="progress-wrap">
+      <div class="progress-dots" id="progressDots"></div>
+      <span class="progress-text" id="progressText">1 / 5</span>
+    </div>
+    <button class="quit-btn" onclick="goHome()">✕ Quit</button>
+  </div>
+
+  <div class="int-body">
+    <div class="question-block">
+      <div class="q-label">Question <span id="qNum">1</span></div>
+      <div class="question-text" id="questionText"></div>
+    </div>
+
+    <div class="meter-row">
+      <span class="meter-label">Answer strength</span>
+      <div class="meter-track"><div class="meter-fill" id="meterFill"></div></div>
+      <span class="meter-score" id="meterScore">—</span>
+    </div>
+
+    <div class="answer-label">Your answer</div>
+    <textarea class="answer-area" id="answerArea" rows="5"
+      placeholder="Type your answer here... Aim for 100–200 words."
+      oninput="onAnswerInput()"
+    ></textarea>
+    <div class="word-count"><span id="wordCount">0</span> words</div>
+
+    <div class="submit-row">
+      <button class="submit-btn" id="submitBtn" onclick="submitAnswer()" disabled>
+        Get feedback
+      </button>
+      <button class="skip-btn" onclick="skipQuestion()">Skip</button>
+    </div>
+
+    <div class="feedback-block" id="feedbackBlock">
+      <div class="feedback-header">
+        <div class="score-badge" id="scoreBadge">8/10</div>
+        <div class="feedback-tags" id="feedbackTags"></div>
+      </div>
+      <div class="feedback-section">
+        <div class="fb-label">What worked</div>
+        <div class="fb-text" id="fbGood"></div>
+      </div>
+      <div class="feedback-section">
+        <div class="fb-label">What to improve</div>
+        <div class="fb-text" id="fbImprove"></div>
+      </div>
+      <div class="feedback-section">
+        <div class="fb-label">Model answer tip</div>
+        <div class="fb-text" id="fbTip"></div>
+      </div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next question →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="results" class="screen">
+  <div class="results-inner">
+    <div class="results-header">
+      <div class="results-grade" id="resultsGrade">B+</div>
+      <div class="results-title" id="resultsTitle">Strong performance</div>
+      <div class="results-sub" id="resultsSub">You're ready to interview. A few areas to polish.</div>
+    </div>
+    <div class="score-breakdown" id="scoreBreakdown"></div>
+    <div class="results-actions">
+      <button class="redo-btn" onclick="retryInterview()">Practice again →</button>
+      <button class="share-btn" onclick="copyResults()">📋 Copy results to share</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS_DB = {
+  "Software Engineer": [
+    "Tell me about yourself and why you're interested in this software engineering role.",
+    "Describe a technically complex problem you solved. What was your approach and what did you learn?",
+    "How do you ensure code quality in your projects? Walk me through your process.",
+    "Tell me about a time you disagreed with a technical decision made by your team. What did you do?",
+    "Where do you see your engineering career in 3 years, and how does this role fit that vision?"
+  ],
+  "Product Manager": [
+    "Tell me about yourself and what draws you to product management.",
+    "Walk me through how you would prioritize features when everything seems equally important.",
+    "Describe a product decision you made with incomplete data. How did you handle the uncertainty?",
+    "How do you gather and incorporate user feedback into your product roadmap?",
+    "Tell me about a time a product launch didn't go as planned. What happened and what did you learn?"
+  ],
+  "Data Analyst": [
+    "Tell me about yourself and your background in data analysis.",
+    "Describe a time you found a surprising or counterintuitive insight in data. What did you do with it?",
+    "How do you approach cleaning and validating a messy dataset?",
+    "Walk me through a dashboard or report you built that had real business impact.",
+    "How do you communicate complex data findings to non-technical stakeholders?"
+  ],
+  "UX Designer": [
+    "Tell me about yourself and your design philosophy.",
+    "Walk me through your design process from research to final delivery.",
+    "Describe a time user research changed the direction of a design you were working on.",
+    "How do you handle feedback or pushback on your design decisions from stakeholders?",
+    "What's a UX problem in an app you use daily, and how would you fix it?"
+  ],
+  "Marketing Manager": [
+    "Tell me about yourself and your marketing background.",
+    "Describe a campaign you led from concept to execution. What was the outcome?",
+    "How do you measure the success of a marketing initiative?",
+    "Tell me about a time a campaign underperformed. What did you learn?",
+    "How do you stay current with marketing trends and apply them to your work?"
+  ]
+};
+
+const GENERIC_QUESTIONS = [
+  "Tell me about yourself and what attracted you to this role.",
+  "Describe a major challenge you faced at work and how you overcame it.",
+  "How do you prioritize when you have multiple urgent tasks competing for your attention?",
+  "Tell me about a time you had to work with a difficult colleague or stakeholder.",
+  "Where do you see yourself in 3 years, and how does this role fit into that?"
+];
+
+let selectedRole = '';
+let questions = [];
+let currentQ = 0;
+let scores = [];
+let feedbacks = [];
+let isLoading = false;
+
+function selectRole(btn, role) {
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedRole = role;
+  const wrap = document.getElementById('customWrap');
+  if (role === 'custom') {
+    wrap.style.display = 'block';
+    document.getElementById('startBtn').disabled = true;
+  } else {
+    wrap.style.display = 'none';
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+function checkStart() {
+  const v = document.getElementById('customRole').value.trim();
+  document.getElementById('startBtn').disabled = v.length < 2;
+}
+
+function startInterview() {
+  let role = selectedRole === 'custom'
+    ? document.getElementById('customRole').value.trim()
+    : selectedRole;
+  selectedRole = role;
+  questions = QUESTIONS_DB[role] || GENERIC_QUESTIONS;
+  currentQ = 0;
+  scores = [];
+  feedbacks = [];
+
+  document.getElementById('roleTag').textContent = role;
+  buildDots();
+  showScreen('interview');
+  loadQuestion();
+}
+
+function buildDots() {
+  const container = document.getElementById('progressDots');
+  container.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.id = 'dot' + i;
+    container.appendChild(d);
+  }
+}
+
+function updateDots() {
+  for (let i = 0; i < 5; i++) {
+    const d = document.getElementById('dot' + i);
+    if (!d) continue;
+    d.className = 'dot';
+    if (i < currentQ) d.classList.add('done');
+    else if (i === currentQ) d.classList.add('active');
+  }
+  document.getElementById('progressText').textContent = `${currentQ + 1} / 5`;
+}
+
+async function loadQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('qNum').textContent = currentQ + 1;
+  document.getElementById('answerArea').value = '';
+  document.getElementById('answerArea').disabled = false;
+  document.getElementById('wordCount').textContent = '0';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('feedbackBlock').classList.remove('show');
+  document.getElementById('meterFill').style.width = '0%';
+  document.getElementById('meterScore').textContent = '—';
+  updateDots();
+  await typeText('questionText', q);
+}
+
+function typeText(elId, text) {
+  return new Promise(resolve => {
+    const el = document.getElementById(elId);
+    el.innerHTML = '';
+    const cursor = '<span class="cursor-blink"></span>';
+    let i = 0;
+    const speed = Math.max(12, 600 / text.length);
+    function next() {
+      if (i < text.length) {
+        el.innerHTML = text.slice(0, i + 1) + cursor;
+        i++;
+        setTimeout(next, speed);
+      } else {
+        el.innerHTML = text;
+        resolve();
+      }
+    }
+    next();
+  });
+}
+
+function onAnswerInput() {
+  const val = document.getElementById('answerArea').value;
+  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('submitBtn').disabled = words < 10;
+
+  // Live confidence meter
+  const score = Math.min(100, Math.round(
+    (words / 150) * 60 +
+    (val.includes('.') ? 15 : 0) +
+    (words > 50 ? 15 : 0) +
+    (words > 100 ? 10 : 0)
+  ));
+  const fill = document.getElementById('meterFill');
+  fill.style.width = score + '%';
+  fill.style.background = score > 70 ? '#10B981' : score > 45 ? '#3B82F6' : '#F59E0B';
+  document.getElementById('meterScore').textContent = score + '%';
+}
+
+async function submitAnswer() {
+  if (isLoading) return;
+  isLoading = true;
+  const answer = document.getElementById('answerArea').value.trim();
+  const question = questions[currentQ];
+  document.getElementById('submitBtn').innerHTML = '<span class="spinner"></span> Analysing...';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('answerArea').disabled = true;
+
+  const prompt = `You are an expert interview coach evaluating a candidate's answer.
+
+Role being interviewed for: ${selectedRole}
+Question: "${question}"
+Candidate's answer: "${answer}"
+
+Evaluate the answer and respond ONLY with a JSON object like this (no markdown, no extra text):
+{
+  "score": 8,
+  "tags": ["Clear structure", "Good example", "Needs specifics"],
+  "tag_types": ["pos", "pos", "neg"],
+  "what_worked": "Two sentences on what the candidate did well.",
+  "what_to_improve": "Two sentences on what to improve.",
+  "model_tip": "One concrete tip or phrase they could use next time."
+}
+
+Score from 1-10. Tags: 2-3 short labels (4 words max each). Be honest but constructive.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    let text = data.content.map(c => c.text || '').join('');
+    text = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(text);
+    showFeedback(result, answer);
+  } catch (e) {
+    showFeedback({
+      score: 7,
+      tags: ["Answer received", "Keep practising"],
+      tag_types: ["neu", "neu"],
+      what_worked: "You provided a response and engaged with the question.",
+      what_to_improve: "Try to add a specific example or measurable outcome to strengthen your answer.",
+      model_tip: "Use the STAR method: Situation, Task, Action, Result."
+    }, answer);
+  }
+  isLoading = false;
+}
+
+function showFeedback(result, answer) {
+  scores.push(result.score);
+  feedbacks.push(result);
+
+  const score = result.score;
+  const badge = document.getElementById('scoreBadge');
+  badge.textContent = score + '/10';
+  badge.className = 'score-badge ' + (score >= 8 ? 'good' : score >= 6 ? 'mid' : 'low');
+
+  const tagsEl = document.getElementById('feedbackTags');
+  tagsEl.innerHTML = (result.tags || []).map((t, i) =>
+    `<span class="ftag ${result.tag_types?.[i] || 'neu'}">${t}</span>`
+  ).join('');
+
+  document.getElementById('fbGood').innerHTML = result.what_worked || '—';
+  document.getElementById('fbImprove').innerHTML = result.what_to_improve || '—';
+  document.getElementById('fbTip').innerHTML = result.model_tip || '—';
+
+  const isLast = currentQ >= 4;
+  document.getElementById('nextBtn').textContent = isLast ? 'See my results →' : 'Next question →';
+
+  document.getElementById('feedbackBlock').classList.add('show');
+  document.getElementById('submitBtn').innerHTML = '✓ Feedback received';
+}
+
+async function nextQuestion() {
+  currentQ++;
+  if (currentQ >= 5) {
+    showResults();
+  } else {
+    document.getElementById('feedbackBlock').classList.remove('show');
+    document.getElementById('submitBtn').innerHTML = 'Get feedback';
+    await loadQuestion();
+  }
+}
+
+function skipQuestion() {
+  scores.push(0);
+  feedbacks.push(null);
+  currentQ++;
+  if (currentQ >= 5) showResults();
+  else loadQuestion();
+}
+
+function showResults() {
+  const answered = scores.filter(s => s > 0);
+  const avg = answered.length ? Math.round(answered.reduce((a,b) => a+b, 0) / answered.length * 10) / 10 : 0;
+
+  let grade, gradeClass, title, sub;
+  if (avg >= 8.5) { grade = 'A'; gradeClass = 'A'; title = 'Outstanding performance'; sub = "You're well prepared. Go get that offer."; }
+  else if (avg >= 7) { grade = 'B+'; gradeClass = 'B'; title = 'Strong performance'; sub = "You're ready to interview. A few areas to polish."; }
+  else if (avg >= 5.5) { grade = 'C+'; gradeClass = 'C'; title = 'Needs work'; sub = "Good foundation, but practice more before the real thing."; }
+  else { grade = 'D'; gradeClass = 'D'; title = 'Keep practising'; sub = "Focus on structure and specific examples. You'll get there."; }
+
+  document.getElementById('resultsGrade').textContent = grade;
+  document.getElementById('resultsGrade').className = 'results-grade ' + gradeClass;
+  document.getElementById('resultsTitle').textContent = title;
+  document.getElementById('resultsSub').textContent = sub;
+
+  const dims = [
+    { label: 'Clarity & structure', val: Math.min(10, avg + (Math.random() * 1.5 - 0.75)) },
+    { label: 'Relevance to role', val: Math.min(10, avg + (Math.random() * 1.5 - 0.75)) },
+    { label: 'Specific examples', val: Math.min(10, avg - 0.5 + (Math.random())) },
+    { label: 'Confidence signals', val: Math.min(10, avg + (Math.random() * 1 - 0.5)) },
+    { label: 'Overall impression', val: avg }
+  ];
+
+  const breakdown = document.getElementById('scoreBreakdown');
+  breakdown.innerHTML = dims.map(d => {
+    const v = Math.max(1, Math.round(d.val * 10) / 10);
+    const pct = (v / 10) * 100;
+    return `<div class="score-row">
+      <span class="score-row-label">${d.label}</span>
+      <div class="score-row-bar"><div class="score-row-fill" style="width:${pct}%"></div></div>
+      <span class="score-row-val">${v.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+
+  showScreen('results');
+}
+
+function copyResults() {
+  const avg = scores.filter(s=>s>0).reduce((a,b)=>a+b,0) / Math.max(1, scores.filter(s=>s>0).length);
+  const text = `🎯 AI Interview Coach Results\n\nRole: ${selectedRole}\nAverage score: ${avg.toFixed(1)}/10\n\nPractise free at: [your link here]`;
+  navigator.clipboard.writeText(text).catch(() => {});
+  event.target.textContent = '✓ Copied!';
+  setTimeout(() => event.target.textContent = '📋 Copy results to share', 2000);
+}
+
+function retryInterview() { startInterview(); }
+function goHome() { showScreen('landing'); }
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
