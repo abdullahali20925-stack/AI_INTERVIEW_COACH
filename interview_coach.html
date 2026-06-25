@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Interview Coach — Practice Real Interviews</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & TOKENS ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --ink:       #0D1117;
+  --ink2:      #161B22;
+  --ink3:      #1C2433;
+  --ink4:      #21262D;
+  --line:      rgba(255,255,255,0.07);
+  --line2:     rgba(255,255,255,0.12);
+  --blue:      #2F80ED;
+  --blue-lt:   #6EB1F7;
+  --blue-bg:   rgba(47,128,237,0.12);
+  --blue-bdr:  rgba(47,128,237,0.3);
+  --green:     #27AE60;
+  --green-bg:  rgba(39,174,96,0.12);
+  --amber:     #F2994A;
+  --amber-bg:  rgba(242,153,74,0.12);
+  --red:       #EB5757;
+  --red-bg:    rgba(235,87,87,0.12);
+  --purple:    #9B51E0;
+  --purple-bg: rgba(155,81,224,0.12);
+  --t1: #F0F6FC;
+  --t2: #8B949E;
+  --t3: #484F58;
+  --radius:    12px;
+  --radius-lg: 18px;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--sans);
+  background: var(--ink);
+  color: var(--t1);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCREENS ─────────────────────────────────────────── */
+.screen { display: none; flex-direction: column; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* ─── SHARED COMPONENTS ───────────────────────────────── */
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 13px 28px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, transform .12s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover:not(:disabled) { background: #1a6fd4; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--line2);
+  color: var(--t2);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-family: var(--sans);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.btn-ghost:hover { border-color: var(--blue-bdr); color: var(--t1); }
+.chip {
+  display: inline-flex; align-items: center;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .6px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+}
+.chip-blue   { background: var(--blue-bg);   color: var(--blue-lt); border: 1px solid var(--blue-bdr); }
+.chip-green  { background: var(--green-bg);  color: #6FCF97; border: 1px solid rgba(39,174,96,.3); }
+.chip-amber  { background: var(--amber-bg);  color: #F2C94C; border: 1px solid rgba(242,153,74,.3); }
+.chip-red    { background: var(--red-bg);    color: #EB5757; border: 1px solid rgba(235,87,87,.3); }
+.chip-purple { background: var(--purple-bg); color: #BB6BD9; border: 1px solid rgba(155,81,224,.3); }
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:none; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   LANDING PAGE
+═══════════════════════════════════════════════════════ */
+#landing { overflow-x: hidden; }
+
+/* Nav */
+.nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--line);
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 15px; font-weight: 500;
+  color: var(--t1);
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-logo-dot {
+  width: 8px; height: 8px;
+  background: var(--blue);
+  border-radius: 50%;
+  animation: pulse 2.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.6; transform:scale(1.3); }
+}
+
+/* Hero */
+.hero {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+  padding: 5rem 1.5rem 4rem;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(47,128,237,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--blue-lt);
+  margin-bottom: 1.25rem;
+}
+.hero-title {
+  font-size: clamp(32px, 6vw, 58px);
+  font-weight: 600; line-height: 1.15;
+  color: var(--t1);
+  max-width: 680px;
+  margin-bottom: 1.25rem;
+}
+.hero-title em {
+  font-style: normal;
+  background: linear-gradient(135deg, #2F80ED, #6EB1F7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 17px; color: var(--t2);
+  max-width: 480px; line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+.hero-cta-row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 3rem;
+}
+.hero-badges {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+}
+.hero-badge {
+  font-size: 12px; color: var(--t3);
+  display: flex; align-items: center; gap: 5px;
+}
+.hero-badge::before { content: '✓'; color: var(--green); font-weight: 700; }
+
+/* How it works */
+.how-section {
+  padding: 3rem 1.5rem;
+  border-top: 1px solid var(--line);
+  max-width: 900px; margin: 0 auto; width: 100%;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--t3); margin-bottom: 2rem; text-align: center;
+}
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.step {
+  background: var(--ink2);
+  padding: 1.5rem;
+}
+.step-num {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500;
+  color: var(--blue);
+  margin-bottom: .75rem;
+}
+.step-icon { font-size: 24px; margin-bottom: .5rem; }
+.step-title { font-size: 14px; font-weight: 600; color: var(--t1); margin-bottom: .25rem; }
+.step-desc { font-size: 13px; color: var(--t2); line-height: 1.5; }
+
+/* Role selector section */
+.role-section {
+  padding: 3rem 1.5rem 4rem;
+  max-width: 900px; margin: 0 auto; width: 100%;
+}
+.role-section-header {
+  text-align: center; margin-bottom: 2rem;
+}
+.role-section-title { font-size: 22px; font-weight: 600; margin-bottom: .5rem; }
+.role-section-sub { font-size: 14px; color: var(--t2); }
+
+/* Difficulty selector */
+.diff-row {
+  display: flex; gap: 8px; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 2rem;
+}
+.diff-btn {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 7px 18px;
+  font-family: var(--sans);
+  font-size: 13px; font-weight: 500;
+  color: var(--t2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.diff-btn:hover { border-color: var(--line2); color: var(--t1); }
+.diff-btn.active { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-lt); }
+
+/* Role cards grid */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 2rem;
+}
+.role-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.role-card:hover { border-color: var(--line2); background: var(--ink3); transform: translateY(-2px); }
+.role-card.selected { border-color: var(--blue); background: var(--blue-bg); }
+.role-card-icon { font-size: 28px; margin-bottom: .5rem; display: block; }
+.role-card-title { font-size: 13px; font-weight: 600; color: var(--t1); margin-bottom: 3px; }
+.role-card-count { font-size: 11px; color: var(--t3); font-family: var(--mono); }
+
+.custom-role-input {
+  width: 100%;
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 13px 16px;
+  color: var(--t1);
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 1.5rem;
+  transition: border-color .15s;
+}
+.custom-role-input:focus { border-color: var(--blue-bdr); }
+.custom-role-input::placeholder { color: var(--t3); }
+
+.start-row {
+  display: flex; justify-content: center; gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* ═══════════════════════════════════════════════════════
+   INTERVIEW SCREEN
+═══════════════════════════════════════════════════════ */
+#interview { background: var(--ink); }
+
+/* Header */
+.int-header {
+  display: flex; align-items: center;
+  padding: .9rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink2);
+  position: sticky; top: 0; z-index: 20;
+  gap: 12px;
+}
+.int-role-pill {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600;
+  color: var(--blue-lt);
+  background: var(--blue-bg);
+  border: 1px solid var(--blue-bdr);
+  border-radius: 20px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+.int-diff-pill {
+  font-size: 11px;
+  color: var(--t3);
+  background: var(--ink3);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 3px 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-family: var(--mono);
+}
+.int-progress-section {
+  flex: 1; display: flex; flex-direction: column; gap: 4px;
+  min-width: 0;
+}
+.int-progress-bar {
+  height: 4px; background: var(--line);
+  border-radius: 4px; overflow: hidden;
+}
+.int-progress-fill {
+  height: 100%; background: var(--blue);
+  border-radius: 4px; transition: width .4s ease;
+}
+.int-progress-text {
+  font-size: 11px; color: var(--t3);
+  font-family: var(--mono);
+}
+.int-quit-btn {
+  font-size: 12px; color: var(--t3);
+  background: none; border: none; cursor: pointer;
+  font-family: var(--sans); padding: 4px 8px;
+  border-radius: 6px; transition: color .15s, background .15s;
+  white-space: nowrap;
+}
+.int-quit-btn:hover { color: var(--t1); background: var(--ink3); }
+
+/* Interview body */
+.int-body {
+  flex: 1;
+  display: flex; flex-direction: column;
+  padding: 2rem 1.5rem;
+  max-width: 720px; margin: 0 auto; width: 100%;
+}
+
+/* Question meta bar */
+.q-meta {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 1rem; flex-wrap: wrap;
+}
+.q-meta-num {
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500;
+  color: var(--t3);
+}
+
+/* Question card */
+.q-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+.q-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--blue);
+  border-radius: 3px 0 0 3px;
+}
+.q-text {
+  font-family: var(--mono);
+  font-size: 15px; line-height: 1.7;
+  color: var(--t1);
+  min-height: 44px;
+}
+.q-cursor {
+  display: inline-block; width: 2px; height: 1.1em;
+  background: var(--blue); margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
+
+/* Answer meter */
+.meter-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1rem;
+}
+.meter-lbl { font-size: 11px; color: var(--t3); white-space: nowrap; font-family: var(--mono); }
+.meter-track {
+  flex: 1; height: 4px; background: var(--line);
+  border-radius: 4px; overflow: hidden;
+}
+.meter-bar {
+  height: 100%; width: 0%;
+  border-radius: 4px;
+  background: var(--blue);
+  transition: width .3s ease, background .3s ease;
+}
+.meter-val { font-size: 11px; font-family: var(--mono); color: var(--t2); min-width: 30px; text-align: right; }
+
+/* Answer textarea */
+.answer-lbl {
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--t3); margin-bottom: .5rem;
+}
+.answer-box {
+  width: 100%;
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  color: var(--t1);
+  font-family: var(--sans);
+  font-size: 14px; line-height: 1.75;
+  resize: none; outline: none;
+  min-height: 130px;
+  transition: border-color .15s;
+}
+.answer-box:focus { border-color: var(--blue-bdr); }
+.answer-box::placeholder { color: var(--t3); }
+.answer-box:disabled { opacity: .5; }
+
+.answer-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 5px; margin-bottom: 1rem;
+}
+.word-count { font-size: 11px; color: var(--t3); font-family: var(--mono); }
+.word-hint  { font-size: 11px; color: var(--t3); }
+
+/* Action row */
+.action-row { display: flex; gap: 10px; }
+.submit-btn {
+  flex: 1; background: var(--blue); color: #fff;
+  border: none; border-radius: var(--radius);
+  padding: 13px; font-family: var(--sans);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .15s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.submit-btn:hover:not(:disabled) { background: #1a6fd4; }
+.submit-btn:disabled { opacity: .4; cursor: not-allowed; }
+.skip-btn {
+  background: none; border: 1px solid var(--line);
+  color: var(--t3); border-radius: var(--radius);
+  padding: 13px 18px; font-family: var(--sans);
+  font-size: 13px; cursor: pointer; transition: all .15s;
+}
+.skip-btn:hover { border-color: var(--line2); color: var(--t2); }
+
+/* ─── Feedback panel ─────────────────────────── */
+.feedback-panel {
+  background: var(--ink3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  margin-top: 1.5rem;
+  overflow: hidden;
+  display: none; animation: fadeUp .3s ease;
+}
+.feedback-panel.visible { display: block; }
+
+.fb-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink2);
+  flex-wrap: wrap;
+}
+.fb-score {
+  font-family: var(--mono);
+  font-size: 26px; font-weight: 500;
+  padding: 4px 14px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.fb-score.hi  { background: var(--green-bg);  color: #6FCF97; }
+.fb-score.mid { background: var(--amber-bg);  color: #F2C94C; }
+.fb-score.lo  { background: var(--red-bg);    color: var(--red); }
+
+.fb-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.fb-body { padding: 1.2rem 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+.fb-block {}
+.fb-block-lbl {
+  font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: .4rem; font-family: var(--mono);
+}
+.fb-block-lbl.green  { color: var(--green); }
+.fb-block-lbl.amber  { color: var(--amber); }
+.fb-block-lbl.blue   { color: var(--blue-lt); }
+.fb-block-lbl.purple { color: #BB6BD9; }
+.fb-block-text {
+  font-size: 13px; color: var(--t2); line-height: 1.7;
+}
+.fb-example-box {
+  background: var(--ink2);
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: .9rem 1.1rem;
+  font-size: 13px; color: var(--t2);
+  line-height: 1.7; font-style: italic;
+  margin-top: .25rem;
+}
+.next-q-btn {
+  width: 100%; background: none;
+  border: 1px solid var(--blue-bdr);
+  color: var(--blue-lt); border-radius: var(--radius);
+  padding: 12px; font-family: var(--sans);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .15s;
+  margin: 0 1.4rem 1.2rem;
+  width: calc(100% - 2.8rem);
+}
+.next-q-btn:hover { background: var(--blue-bg); }
+
+/* ═══════════════════════════════════════════════════════
+   RESULTS SCREEN
+═══════════════════════════════════════════════════════ */
+#results {
+  padding: 2rem 1.5rem;
+  align-items: center;
+}
+.results-wrap { max-width: 640px; width: 100%; margin: 0 auto; }
+
+.results-top {
+  text-align: center;
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 1.5rem;
+  margin-bottom: 1.5rem;
+  position: relative; overflow: hidden;
+}
+.results-top::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(47,128,237,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.results-grade {
+  font-family: var(--mono);
+  font-size: 80px; line-height: 1;
+  font-weight: 500;
+  margin-bottom: .5rem;
+}
+.results-grade.A { color: #6FCF97; }
+.results-grade.B { color: var(--blue-lt); }
+.results-grade.C { color: #F2C94C; }
+.results-grade.D { color: var(--red); }
+.results-role { font-size: 13px; color: var(--t3); font-family: var(--mono); letter-spacing: .5px; margin-bottom: .25rem; }
+.results-verdict { font-size: 20px; font-weight: 600; color: var(--t1); margin-bottom: .4rem; }
+.results-subtitle { font-size: 14px; color: var(--t2); }
+
+.results-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 1.5rem;
+}
+.results-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+}
+.results-card-lbl {
+  font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--t3); margin-bottom: .75rem;
+  font-family: var(--mono);
+}
+.results-skill-list { display: flex; flex-direction: column; gap: 6px; }
+.results-skill {
+  font-size: 13px; color: var(--t2);
+  display: flex; align-items: center; gap: 6px;
+}
+.results-skill::before { content: '→'; color: var(--blue); font-family: var(--mono); font-size: 11px; }
+
+.score-breakdown-list {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+.score-breakdown-lbl {
+  font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--t3); margin-bottom: 1rem;
+  font-family: var(--mono);
+}
+.srow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+}
+.srow:last-child { border-bottom: none; }
+.srow-lbl { font-size: 13px; color: var(--t2); flex: 1; }
+.srow-bar { flex: 2; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.srow-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width 1s ease; }
+.srow-val { font-size: 12px; font-weight: 500; color: var(--t1); min-width: 36px; text-align: right; font-family: var(--mono); }
+
+.recs-card {
+  background: var(--ink2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+.recs-card-lbl {
+  font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; font-weight: 600;
+  color: var(--t3); margin-bottom: .75rem;
+  font-family: var(--mono);
+}
+.rec-item {
+  font-size: 13px; color: var(--t2); line-height: 1.6;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  display: flex; gap: 10px;
+}
+.rec-item:last-child { border-bottom: none; }
+.rec-num { font-family: var(--mono); font-size: 11px; color: var(--blue); padding-top: 3px; flex-shrink: 0; }
+
+.results-actions { display: flex; flex-direction: column; gap: 10px; }
+.results-actions .btn-primary { justify-content: center; }
+.results-actions .btn-ghost { text-align: center; }
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .hero { padding: 3.5rem 1rem 2.5rem; }
+  .hero-title { font-size: 28px; }
+  .roles-grid { grid-template-columns: repeat(2, 1fr); }
+  .steps-grid { grid-template-columns: 1fr 1fr; }
+  .int-header { padding: .75rem 1rem; gap: 8px; }
+  .int-body { padding: 1.25rem 1rem; }
+  .results-grid { grid-template-columns: 1fr; }
+  .nav { padding: 1rem; }
+  .diff-btn { font-size: 12px; padding: 6px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     LANDING SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="landing" class="screen active">
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="nav-logo-dot"></div>
+      InterviewCoach.ai
+    </div>
+    <span class="chip chip-green">Free · No signup</span>
+  </nav>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">Powered by Claude AI</div>
+    <h1 class="hero-title">Practice <em>real interviews</em><br>with AI</h1>
+    <p class="hero-sub">Get role-specific interview questions, instant feedback, and improve your confidence before your next interview.</p>
+    <div class="hero-cta-row">
+      <a href="#pick-role" class="btn-primary" style="text-decoration:none;">Start practising →</a>
+    </div>
+    <div class="hero-badges">
+      <span class="hero-badge">8 specialised roles</span>
+      <span class="hero-badge">30+ questions per role</span>
+      <span class="hero-badge">AI feedback on every answer</span>
+      <span class="hero-badge">3 difficulty levels</span>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="how-section">
+    <div class="section-label">How it works</div>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">Step 01</div>
+        <div class="step-icon">🎯</div>
+        <div class="step-title">Select your role</div>
+        <div class="step-desc">Choose from 8 specialised roles or enter your own.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 02</div>
+        <div class="step-icon">💬</div>
+        <div class="step-title">Answer questions</div>
+        <div class="step-desc">Five role-specific questions — technical, behavioural, situational.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 03</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Get feedback</div>
+        <div class="step-desc">Scored feedback with strengths, gaps, and a model answer tip.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 04</div>
+        <div class="step-icon">🚀</div>
+        <div class="step-title">Improve &amp; repeat</div>
+        <div class="step-desc">Review your summary and practise until you're confident.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role selector -->
+  <div class="role-section" id="pick-role">
+    <div class="role-section-header">
+      <h2 class="role-section-title">Choose your role &amp; difficulty</h2>
+      <p class="role-section-sub">Questions adapt based on the difficulty you select</p>
+    </div>
+
+    <div class="diff-row">
+      <button class="diff-btn active" data-diff="beginner" onclick="setDiff(this)">🌱 Beginner</button>
+      <button class="diff-btn" data-diff="intermediate" onclick="setDiff(this)">⚡ Intermediate</button>
+      <button class="diff-btn" data-diff="advanced" onclick="setDiff(this)">🔥 Advanced</button>
+    </div>
+
+    <div class="roles-grid" id="rolesGrid">
+      <!-- Injected by JS -->
+    </div>
+
+    <div id="customWrap" style="display:none;">
+      <input type="text" class="custom-role-input" id="customRoleInput"
+        placeholder="Enter your role, e.g. DevOps Engineer, Sales Lead, Project Manager…"
+        oninput="onCustomInput()" />
+    </div>
+
+    <div class="start-row">
+      <button class="btn-primary" id="startBtn" disabled onclick="startInterview()">
+        Begin interview →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     INTERVIEW SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="interview" class="screen">
+  <div class="int-header">
+    <div class="int-role-pill" id="headerRole">–</div>
+    <div class="int-diff-pill" id="headerDiff">–</div>
+    <div class="int-progress-section">
+      <div class="int-progress-bar">
+        <div class="int-progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="int-progress-text" id="progressText">Question 1 of 5</div>
+    </div>
+    <button class="int-quit-btn" onclick="goHome()">✕ Exit</button>
+  </div>
+
+  <div class="int-body">
+    <div class="q-meta">
+      <span class="q-meta-num" id="qNum">Q1</span>
+      <span class="chip chip-blue" id="qCategory">Technical</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-text" id="qText">—</div>
+    </div>
+
+    <div class="meter-wrap">
+      <span class="meter-lbl">Strength</span>
+      <div class="meter-track"><div class="meter-bar" id="meterBar"></div></div>
+      <span class="meter-val" id="meterVal">—</span>
+    </div>
+
+    <div class="answer-lbl">Your answer</div>
+    <textarea class="answer-box" id="answerBox" rows="5"
+      placeholder="Write your answer here… Aim for 80–200 words. Use specific examples where possible."
+      oninput="onAnswerType()" maxlength="3000"></textarea>
+    <div class="answer-footer">
+      <span class="word-count"><span id="wordCount">0</span> words</span>
+      <span class="word-hint">Aim for 80–200 words</span>
+    </div>
+
+    <div class="action-row">
+      <button class="submit-btn" id="submitBtn" disabled onclick="submitAnswer()">
+        Get feedback
+      </button>
+      <button class="skip-btn" onclick="skipQuestion()">Skip</button>
+    </div>
+
+    <div class="feedback-panel" id="feedbackPanel">
+      <div class="fb-top">
+        <div class="fb-score" id="fbScore">–/10</div>
+        <div class="fb-tags" id="fbTags"></div>
+      </div>
+      <div class="fb-body">
+        <div class="fb-block">
+          <div class="fb-block-lbl green">✓ Strengths</div>
+          <div class="fb-block-text" id="fbStrengths">–</div>
+        </div>
+        <div class="fb-block">
+          <div class="fb-block-lbl amber">⚠ Areas to improve</div>
+          <div class="fb-block-text" id="fbWeaknesses">–</div>
+        </div>
+        <div class="fb-block">
+          <div class="fb-block-lbl blue">💡 Suggested improvement</div>
+          <div class="fb-block-text" id="fbSuggestion">–</div>
+        </div>
+        <div class="fb-block">
+          <div class="fb-block-lbl purple">★ Example of a stronger answer</div>
+          <div class="fb-example-box" id="fbExample">–</div>
+        </div>
+      </div>
+      <button class="next-q-btn" id="nextQBtn" onclick="nextQuestion()">Next question →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     RESULTS SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="results" class="screen">
+  <div class="results-wrap">
+    <div class="results-top">
+      <div class="results-role" id="resultsRole">–</div>
+      <div class="results-grade" id="resultsGrade">–</div>
+      <div class="results-verdict" id="resultsVerdict">–</div>
+      <div class="results-subtitle" id="resultsSubtitle">–</div>
+    </div>
+
+    <div class="results-grid">
+      <div class="results-card">
+        <div class="results-card-lbl">💪 Strongest skills</div>
+        <div class="results-skill-list" id="strongSkills">–</div>
+      </div>
+      <div class="results-card">
+        <div class="results-card-lbl">📈 Skills to develop</div>
+        <div class="results-skill-list" id="weakSkills">–</div>
+      </div>
+    </div>
+
+    <div class="score-breakdown-list">
+      <div class="score-breakdown-lbl">Score breakdown</div>
+      <div id="scoreRows">–</div>
+    </div>
+
+    <div class="recs-card">
+      <div class="recs-card-lbl">🎯 Improvement recommendations</div>
+      <div id="recsList">–</div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn-primary" onclick="retryInterview()">Practice again →</button>
+      <button class="btn-ghost" onclick="goHome()">← Choose a different role</button>
+      <button class="btn-ghost" onclick="copyResults()">📋 Copy results to share</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
+<script>
+/* ─── QUESTION BANK ────────────────────────────────────
+   Each role has 30+ questions split across:
+   technical, behavioral, situational, problem_solving,
+   communication, leadership
+   and tagged with difficulty: beginner | intermediate | advanced
+──────────────────────────────────────────────────────── */
+const ROLES = [
+  { id:'swe',       icon:'💻', title:'Software Engineer',    count:'32 questions' },
+  { id:'teacher',   icon:'🏫', title:'Teacher',              count:'30 questions' },
+  { id:'accountant',icon:'📒', title:'Accountant',           count:'30 questions' },
+  { id:'nurse',     icon:'🩺', title:'Nurse',                count:'30 questions' },
+  { id:'sales',     icon:'🤝', title:'Sales Representative', count:'30 questions' },
+  { id:'marketing', icon:'📣', title:'Marketing Manager',    count:'31 questions' },
+  { id:'hr',        icon:'🧑‍💼', title:'HR Manager',           count:'30 questions' },
+  { id:'analyst',   icon:'📊', title:'Data Analyst',         count:'32 questions' },
+  { id:'custom',    icon:'✏️', title:'Other role',           count:'Custom' },
+];
+
+const QB = {
+  swe: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and your programming background.', cat:'Introduction', diff:'beginner' },
+    { q:'What programming languages are you most comfortable with and why?', cat:'Technical', diff:'beginner' },
+    { q:'Can you explain the difference between an array and a linked list?', cat:'Technical', diff:'beginner' },
+    { q:'What is version control and why is it important?', cat:'Technical', diff:'beginner' },
+    { q:'Describe a personal or academic project you built. What did it do and what did you learn?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you approach debugging a piece of code that isn\'t working?', cat:'Problem Solving', diff:'beginner' },
+    { q:'What is the difference between frontend and backend development?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a time you had to learn a new technology quickly. How did you handle it?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you ensure your code is readable by others?', cat:'Communication', diff:'beginner' },
+    { q:'What do you do when you\'re stuck on a problem for more than an hour?', cat:'Problem Solving', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Walk me through how you would design a URL shortener service.', cat:'System Design', diff:'intermediate' },
+    { q:'Explain the concept of REST APIs and how you have used them.', cat:'Technical', diff:'intermediate' },
+    { q:'What is the difference between SQL and NoSQL databases? When would you use each?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe a time a bug you introduced caused a significant problem. How did you resolve it?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you approach code reviews — both when reviewing others\' code and receiving feedback?', cat:'Communication', diff:'intermediate' },
+    { q:'Explain the concept of time complexity. Give an example where choosing the wrong algorithm caused performance issues.', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you disagreed with a technical decision on your team. What did you do?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you balance writing tests versus shipping features quickly?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Describe a situation where you had to refactor a large piece of legacy code. What was your approach?', cat:'Situational', diff:'intermediate' },
+    { q:'How do you stay up to date with new technologies and best practices?', cat:'Communication', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'Design a rate-limiting system that can handle millions of requests per second.', cat:'System Design', diff:'advanced' },
+    { q:'Explain the CAP theorem and give an example of a real-world trade-off you have made.', cat:'Technical', diff:'advanced' },
+    { q:'How would you architect a microservices system for a high-traffic e-commerce platform?', cat:'System Design', diff:'advanced' },
+    { q:'Tell me about the most technically complex project you have led. What were the biggest architectural decisions?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you approach capacity planning for a distributed system?', cat:'Technical', diff:'advanced' },
+    { q:'Describe a situation where you had to make a major technical trade-off under time pressure. What happened?', cat:'Situational', diff:'advanced' },
+    { q:'How do you build and maintain engineering culture in a team?', cat:'Leadership', diff:'advanced' },
+    { q:'Walk me through how you would diagnose a sudden 10x spike in API latency in production.', cat:'Problem Solving', diff:'advanced' },
+    { q:'How would you design a global content delivery network from scratch?', cat:'System Design', diff:'advanced' },
+    { q:'Tell me about a time you had to mentor someone through a significant technical challenge.', cat:'Leadership', diff:'advanced' },
+    { q:'How do you approach security considerations in your architecture decisions?', cat:'Technical', diff:'advanced' },
+    { q:'Describe how you would lead a migration from a monolith to microservices without downtime.', cat:'System Design', diff:'advanced' },
+  ],
+  teacher: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and what inspired you to become a teacher.', cat:'Introduction', diff:'beginner' },
+    { q:'How do you plan a lesson? Walk me through your process for a typical class.', cat:'Technical', diff:'beginner' },
+    { q:'What strategies do you use to keep students engaged during a lesson?', cat:'Communication', diff:'beginner' },
+    { q:'How do you handle a student who is disruptive in class?', cat:'Behavioral', diff:'beginner' },
+    { q:'Describe how you would introduce a new topic to a class for the first time.', cat:'Situational', diff:'beginner' },
+    { q:'How do you assess whether students have understood the material?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a lesson that went particularly well. What made it successful?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you communicate with parents about their child\'s progress?', cat:'Communication', diff:'beginner' },
+    { q:'What do you believe is the most important quality in a teacher?', cat:'Introduction', diff:'beginner' },
+    { q:'How do you adapt your teaching style for students with different learning speeds?', cat:'Technical', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Describe a time you had to adapt your lesson plan mid-class because it wasn\'t working. What did you do?', cat:'Situational', diff:'intermediate' },
+    { q:'How do you create an inclusive classroom environment for students with diverse backgrounds?', cat:'Behavioral', diff:'intermediate' },
+    { q:'Tell me about a student who struggled significantly. How did you support them?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you incorporate technology into your teaching?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe how you handle a situation where a student accuses you of grading unfairly.', cat:'Situational', diff:'intermediate' },
+    { q:'How do you differentiate instruction for students who are advanced versus those who are behind?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you had a difficult conversation with a parent. How did you handle it?', cat:'Communication', diff:'intermediate' },
+    { q:'How do you design assessments that genuinely measure understanding, not just memorisation?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'What approaches do you use to motivate students who show no interest in the subject?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you collaborate with colleagues to align curriculum across year groups?', cat:'Leadership', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How do you design a curriculum unit from scratch? Walk me through your process from learning objectives to assessment.', cat:'Technical', diff:'advanced' },
+    { q:'Tell me about a time you led a whole-school initiative or project. What were the challenges?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you handle a situation where you believe school policy is harming students?', cat:'Situational', diff:'advanced' },
+    { q:'Describe your approach to professional development and how you stay current with best teaching practices.', cat:'Behavioral', diff:'advanced' },
+    { q:'How do you use data from assessments to adjust your teaching at a class-wide level?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Tell me about a time you mentored a less experienced teacher. How did you approach it?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build a culture of high expectations and psychological safety simultaneously in your classroom?', cat:'Communication', diff:'advanced' },
+    { q:'Describe a situation where a student revealed something concerning about their home life. What did you do?', cat:'Situational', diff:'advanced' },
+    { q:'How would you design a school-wide literacy improvement programme?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Tell me about a time you had to navigate a conflict between two colleagues that was affecting your department.', cat:'Leadership', diff:'advanced' },
+  ],
+  accountant: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and your accounting background.', cat:'Introduction', diff:'beginner' },
+    { q:'Can you explain the difference between accounts payable and accounts receivable?', cat:'Technical', diff:'beginner' },
+    { q:'What accounting software have you used? What are its main features?', cat:'Technical', diff:'beginner' },
+    { q:'Explain the basic accounting equation and why it matters.', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a time you caught an error in financial records. What did you do?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you stay organised when managing multiple accounts or ledgers at once?', cat:'Problem Solving', diff:'beginner' },
+    { q:'What is the difference between cash-basis and accrual accounting?', cat:'Technical', diff:'beginner' },
+    { q:'How do you handle deadlines when multiple reports are due at the same time?', cat:'Situational', diff:'beginner' },
+    { q:'Describe a situation where you had to explain a financial concept to a non-finance colleague.', cat:'Communication', diff:'beginner' },
+    { q:'What steps do you take to ensure accuracy in your work?', cat:'Behavioral', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Walk me through your month-end close process.', cat:'Technical', diff:'intermediate' },
+    { q:'How do you prepare and review a balance sheet and income statement?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe a time you identified a significant discrepancy during a reconciliation. How did you investigate it?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you handle a situation where a manager pressures you to adjust figures you believe are incorrect?', cat:'Situational', diff:'intermediate' },
+    { q:'Explain how you manage tax compliance deadlines across different jurisdictions.', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you improved a financial process. What did you change and what was the impact?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you approach an internal audit? What do you look for?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe how you present financial results to senior leadership who are not finance specialists.', cat:'Communication', diff:'intermediate' },
+    { q:'How do you ensure compliance with relevant accounting standards (e.g. IFRS or GAAP)?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you had to work under extreme time pressure to close the books. How did you manage?', cat:'Behavioral', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you design a financial controls framework for a rapidly growing company?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Walk me through how you would prepare the business for an external audit.', cat:'Technical', diff:'advanced' },
+    { q:'Describe a complex revenue recognition problem you have faced and how you resolved it.', cat:'Technical', diff:'advanced' },
+    { q:'Tell me about a time you led a major financial transformation project.', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build a finance team that is both technically strong and business-partnering focused?', cat:'Leadership', diff:'advanced' },
+    { q:'Describe a situation where you identified financial risk that others had overlooked. What did you do?', cat:'Problem Solving', diff:'advanced' },
+    { q:'How do you approach mergers and acquisitions from a financial due diligence perspective?', cat:'Technical', diff:'advanced' },
+    { q:'Tell me about a time you had to communicate difficult financial news to senior leadership.', cat:'Communication', diff:'advanced' },
+    { q:'How do you design and manage a multi-year financial planning and analysis process?', cat:'Technical', diff:'advanced' },
+    { q:'Describe your experience with cash flow forecasting in an uncertain economic environment.', cat:'Problem Solving', diff:'advanced' },
+  ],
+  nurse: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and what motivated you to pursue nursing.', cat:'Introduction', diff:'beginner' },
+    { q:'How do you prioritise patients when you have multiple patients with different needs?', cat:'Technical', diff:'beginner' },
+    { q:'Describe how you would handle a patient who is anxious or frightened about a procedure.', cat:'Communication', diff:'beginner' },
+    { q:'What do you do if you believe a medication error has occurred?', cat:'Situational', diff:'beginner' },
+    { q:'Tell me about a time you provided comfort to a patient or family member in a difficult situation.', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you maintain patient confidentiality while working in a busy ward?', cat:'Technical', diff:'beginner' },
+    { q:'How do you ensure accurate patient handover at shift change?', cat:'Technical', diff:'beginner' },
+    { q:'Describe a situation where you disagreed with a doctor\'s decision. What did you do?', cat:'Situational', diff:'beginner' },
+    { q:'What steps do you take to prevent hospital-acquired infections?', cat:'Technical', diff:'beginner' },
+    { q:'How do you take care of your own wellbeing when working in a high-pressure environment?', cat:'Behavioral', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Describe how you would manage a patient who suddenly deteriorates on the ward.', cat:'Situational', diff:'intermediate' },
+    { q:'Tell me about a time you identified a clinical risk that others had missed. What happened?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you approach end-of-life care conversations with patients and families?', cat:'Communication', diff:'intermediate' },
+    { q:'Describe a time you had to deal with an aggressive or abusive patient or relative.', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you ensure patients from different cultural backgrounds receive respectful and appropriate care?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you made a mistake in your clinical practice. How did you handle it?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you balance following protocols with using clinical judgement in individual patient cases?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Describe your experience with triaging patients in a busy emergency or admissions setting.', cat:'Technical', diff:'intermediate' },
+    { q:'How do you support and mentor newly qualified nurses joining your team?', cat:'Leadership', diff:'intermediate' },
+    { q:'Tell me about a time you advocated for a patient whose wishes were not being heard.', cat:'Behavioral', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you implement a quality improvement initiative to reduce patient falls on your ward?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Describe how you would manage a major incident or mass casualty situation.', cat:'Situational', diff:'advanced' },
+    { q:'Tell me about a time you led your team through an exceptionally difficult period (e.g. staffing crisis, pandemic). What was your approach?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you approach clinical governance and audit in your area of practice?', cat:'Technical', diff:'advanced' },
+    { q:'Describe your experience with complex case management across multi-disciplinary teams.', cat:'Technical', diff:'advanced' },
+    { q:'How do you handle ethical dilemmas where the clinical and patient-preference decisions conflict?', cat:'Situational', diff:'advanced' },
+    { q:'Tell me about a systemic problem you identified in patient care. What did you do to address it?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build psychological safety in a clinical team so staff feel comfortable raising concerns?', cat:'Leadership', diff:'advanced' },
+    { q:'Describe a complex safeguarding situation you encountered. How did you navigate it?', cat:'Situational', diff:'advanced' },
+    { q:'How do you use data and audit outcomes to drive improvements in patient safety?', cat:'Problem Solving', diff:'advanced' },
+  ],
+  sales: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and what draws you to sales.', cat:'Introduction', diff:'beginner' },
+    { q:'How do you approach a cold call or first contact with a potential customer?', cat:'Technical', diff:'beginner' },
+    { q:'Describe how you handle rejection. What do you tell yourself when a deal doesn\'t close?', cat:'Behavioral', diff:'beginner' },
+    { q:'What do you do to understand a customer\'s needs before pitching a product?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a time you persuaded someone to change their mind. What did you do?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you organise your day when you have multiple leads to follow up?', cat:'Problem Solving', diff:'beginner' },
+    { q:'What is your approach when a prospect says "I need to think about it"?', cat:'Situational', diff:'beginner' },
+    { q:'How do you build rapport with a new prospect in the first five minutes?', cat:'Communication', diff:'beginner' },
+    { q:'Describe the sales process you follow from lead to close.', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a small win in your sales career that you\'re proud of.', cat:'Behavioral', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Walk me through how you have handled a prospect who objected to your price.', cat:'Situational', diff:'intermediate' },
+    { q:'Tell me about a deal you lost. What did you learn from it?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you identify which leads to prioritise when you have a full pipeline?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Describe a complex sale involving multiple stakeholders. How did you manage it?', cat:'Technical', diff:'intermediate' },
+    { q:'How do you tailor your pitch for different types of buyers (e.g. technical vs. executive)?', cat:'Communication', diff:'intermediate' },
+    { q:'Tell me about a time you consistently exceeded your sales targets. What drove that performance?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you use CRM data to improve your sales performance?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe how you would re-engage a customer who went cold after initial interest.', cat:'Situational', diff:'intermediate' },
+    { q:'How do you negotiate terms without undermining the value of your product?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you turned a sceptical customer into a long-term client.', cat:'Behavioral', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you build a territory plan for a new market you\'ve been assigned?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Describe how you have developed and coached junior sales reps to hit their numbers.', cat:'Leadership', diff:'advanced' },
+    { q:'Tell me about your most complex or high-value deal. How did you close it?', cat:'Technical', diff:'advanced' },
+    { q:'How do you create a strategic account plan for a key enterprise customer?', cat:'Technical', diff:'advanced' },
+    { q:'Describe a time sales performance was declining. How did you diagnose the problem and turn things around?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you align your sales strategy with the company\'s overall go-to-market strategy?', cat:'Leadership', diff:'advanced' },
+    { q:'Tell me about a time you had to sell an unpopular change (pricing increase, product change) to existing customers.', cat:'Situational', diff:'advanced' },
+    { q:'How do you build a culture of accountability and high performance in a sales team?', cat:'Leadership', diff:'advanced' },
+    { q:'Describe your experience forecasting revenue. How accurate were your forecasts and how did you improve them?', cat:'Technical', diff:'advanced' },
+    { q:'How do you identify and pursue new market segments when your core market is saturated?', cat:'Problem Solving', diff:'advanced' },
+  ],
+  marketing: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and what excites you about marketing.', cat:'Introduction', diff:'beginner' },
+    { q:'What is the difference between brand awareness and lead generation campaigns?', cat:'Technical', diff:'beginner' },
+    { q:'How would you define a target audience for a new product?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a campaign or marketing project you worked on. What was your role?', cat:'Behavioral', diff:'beginner' },
+    { q:'What marketing channels have you worked with and which do you find most effective?', cat:'Technical', diff:'beginner' },
+    { q:'How do you measure whether a marketing campaign has been successful?', cat:'Problem Solving', diff:'beginner' },
+    { q:'Describe how you would write a compelling social media post for a product launch.', cat:'Communication', diff:'beginner' },
+    { q:'How do you keep up with marketing trends and competitor activity?', cat:'Behavioral', diff:'beginner' },
+    { q:'What is SEO and why does it matter for a business?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a piece of content you created that you\'re proud of and why it worked.', cat:'Behavioral', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Walk me through how you would plan a product launch from scratch.', cat:'Technical', diff:'intermediate' },
+    { q:'Describe a campaign that underperformed. What did you learn and what would you do differently?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you use data to make decisions about where to allocate marketing budget?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Tell me about a time you had to align the marketing strategy with a major business pivot.', cat:'Situational', diff:'intermediate' },
+    { q:'How do you approach building and maintaining a brand identity across channels?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe how you manage an agency or external creative partners.', cat:'Leadership', diff:'intermediate' },
+    { q:'How do you create a content calendar that serves both short-term goals and long-term brand building?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you had to justify your marketing spend to the CFO or board.', cat:'Communication', diff:'intermediate' },
+    { q:'How do you approach A/B testing and iterating on campaign creative?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Describe your process for competitive analysis and how you use it to inform strategy.', cat:'Technical', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you design a full-funnel marketing strategy for entering a new market?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Tell me about the largest marketing budget you have managed. How did you allocate it and what were the results?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build a marketing organisation from an early-stage team to a scaled function?', cat:'Leadership', diff:'advanced' },
+    { q:'Describe how you would approach a brand repositioning exercise.', cat:'Technical', diff:'advanced' },
+    { q:'Tell me about a time you had to rebuild a marketing strategy after a significant brand crisis.', cat:'Situational', diff:'advanced' },
+    { q:'How do you build alignment between marketing, sales, and product teams?', cat:'Leadership', diff:'advanced' },
+    { q:'Walk me through how you would design and present an annual marketing plan to the board.', cat:'Communication', diff:'advanced' },
+    { q:'Describe how you use customer data and segmentation to personalise marketing at scale.', cat:'Technical', diff:'advanced' },
+    { q:'How do you evaluate and introduce new marketing technologies into your stack?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Tell me about a time you led a marketing team through a period of rapid growth or major change.', cat:'Leadership', diff:'advanced' },
+    { q:'How do you balance short-term performance marketing targets with long-term brand investment?', cat:'Problem Solving', diff:'advanced' },
+  ],
+  hr: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and what drew you to a career in HR.', cat:'Introduction', diff:'beginner' },
+    { q:'What is your experience with the recruitment and selection process?', cat:'Technical', diff:'beginner' },
+    { q:'How do you ensure job postings attract the right candidates?', cat:'Technical', diff:'beginner' },
+    { q:'Describe how you would handle a straightforward employee complaint.', cat:'Behavioral', diff:'beginner' },
+    { q:'What do you know about employment law basics (contracts, notice periods, discrimination)?', cat:'Technical', diff:'beginner' },
+    { q:'How do you maintain confidentiality when dealing with sensitive employee information?', cat:'Behavioral', diff:'beginner' },
+    { q:'Describe how you would onboard a new employee in their first week.', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a time you had to communicate a difficult message to an employee.', cat:'Communication', diff:'beginner' },
+    { q:'How do you prioritise tasks when you have multiple HR requests coming in at once?', cat:'Problem Solving', diff:'beginner' },
+    { q:'What do you believe makes a great employee experience?', cat:'Behavioral', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Describe how you would manage a formal grievance process from start to resolution.', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you handled a conflict between two employees. What was your approach?', cat:'Behavioral', diff:'intermediate' },
+    { q:'How do you design a performance review process that is fair and actually drives improvement?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Describe your experience with redundancy processes. How do you handle them sensitively?', cat:'Technical', diff:'intermediate' },
+    { q:'How do you support managers who are struggling to manage their team\'s performance?', cat:'Leadership', diff:'intermediate' },
+    { q:'Tell me about a time you identified a pattern of low engagement across a team. What did you do?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you use HR data and metrics to inform decisions?', cat:'Technical', diff:'intermediate' },
+    { q:'Describe a time you had to push back on a line manager\'s decision that you believed was legally or ethically problematic.', cat:'Situational', diff:'intermediate' },
+    { q:'How do you approach salary benchmarking and pay equity reviews?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you successfully improved an HR process. What changed and what was the impact?', cat:'Behavioral', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you design and implement a talent strategy for a fast-growing organisation?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Describe your experience leading a significant organisational restructure.', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build a culture of psychological safety and inclusion?', cat:'Leadership', diff:'advanced' },
+    { q:'Tell me about a time you managed a highly sensitive HR situation at executive or board level.', cat:'Situational', diff:'advanced' },
+    { q:'How would you design an executive succession planning programme?', cat:'Technical', diff:'advanced' },
+    { q:'Describe how you have built or reformed an HR team to support business growth.', cat:'Leadership', diff:'advanced' },
+    { q:'How do you align HR strategy with broader business objectives?', cat:'Leadership', diff:'advanced' },
+    { q:'Tell me about a time you led a major culture change initiative. What worked and what didn\'t?', cat:'Behavioral', diff:'advanced' },
+    { q:'How do you handle an allegation of serious misconduct at a senior level?', cat:'Situational', diff:'advanced' },
+    { q:'Describe how you would design a total rewards strategy that attracts and retains top talent.', cat:'Technical', diff:'advanced' },
+  ],
+  analyst: [
+    // --- BEGINNER ---
+    { q:'Tell me about yourself and your background in data analysis.', cat:'Introduction', diff:'beginner' },
+    { q:'What is the difference between a SQL JOIN and a UNION?', cat:'Technical', diff:'beginner' },
+    { q:'How do you approach cleaning a dataset that contains missing values and duplicates?', cat:'Technical', diff:'beginner' },
+    { q:'Describe a report or dashboard you have built. What did it measure and who used it?', cat:'Behavioral', diff:'beginner' },
+    { q:'What tools do you use for data analysis? (Excel, SQL, Python, Tableau, etc.)', cat:'Technical', diff:'beginner' },
+    { q:'How do you explain a data finding to someone who has no data background?', cat:'Communication', diff:'beginner' },
+    { q:'What is the difference between a mean, median, and mode? When would you use each?', cat:'Technical', diff:'beginner' },
+    { q:'Tell me about a time your analysis led to a decision or action. What happened?', cat:'Behavioral', diff:'beginner' },
+    { q:'How do you QA your own work before sharing analysis with stakeholders?', cat:'Problem Solving', diff:'beginner' },
+    { q:'What is a pivot table and how have you used one?', cat:'Technical', diff:'beginner' },
+    // --- INTERMEDIATE ---
+    { q:'Describe a time you found a surprising or counterintuitive insight in data. What did you do with it?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you decide which visualisation type (bar, line, scatter, etc.) to use for a particular dataset?', cat:'Technical', diff:'intermediate' },
+    { q:'Walk me through how you would build a dashboard for a sales team from scratch.', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time stakeholders disagreed with your data findings. How did you handle it?', cat:'Situational', diff:'intermediate' },
+    { q:'How do you handle a situation where the data you have doesn\'t answer the question being asked?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'Explain the difference between correlation and causation using a real-world example.', cat:'Communication', diff:'intermediate' },
+    { q:'Describe your experience working with large datasets. How do you approach performance when SQL queries are slow?', cat:'Technical', diff:'intermediate' },
+    { q:'How do you validate that a data pipeline is working correctly?', cat:'Technical', diff:'intermediate' },
+    { q:'Tell me about a time you had to combine data from multiple sources that didn\'t match. How did you resolve it?', cat:'Problem Solving', diff:'intermediate' },
+    { q:'How do you prioritise analytical requests when you have five stakeholders all asking for something urgent?', cat:'Situational', diff:'intermediate' },
+    // --- ADVANCED ---
+    { q:'How would you design a company-wide KPI framework from scratch?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Describe a complex predictive modelling or statistical analysis project you have led.', cat:'Technical', diff:'advanced' },
+    { q:'How do you build data literacy across a non-technical organisation?', cat:'Leadership', diff:'advanced' },
+    { q:'Tell me about a time your analysis directly influenced a major business decision.', cat:'Behavioral', diff:'advanced' },
+    { q:'How would you architect a data warehouse for a company moving from spreadsheets to a modern stack?', cat:'Technical', diff:'advanced' },
+    { q:'Describe how you approach A/B test design, including sample size and significance.', cat:'Technical', diff:'advanced' },
+    { q:'How do you ensure data quality and governance at scale?', cat:'Problem Solving', diff:'advanced' },
+    { q:'Tell me about a time you identified a significant flaw in how the business was measuring itself. How did you address it?', cat:'Leadership', diff:'advanced' },
+    { q:'How do you build and lead a high-performing analytics team?', cat:'Leadership', diff:'advanced' },
+    { q:'Describe your experience presenting complex analysis to a board or executive audience.', cat:'Communication', diff:'advanced' },
+    { q:'How do you stay current with developments in data tools and methodologies?', cat:'Technical', diff:'advanced' },
+    { q:'Describe a situation where you had to balance analytical rigour with the need for speed.', cat:'Situational', diff:'advanced' },
+  ],
+};
+
+/* ─── STATE ───────────────────────────────────────────── */
+let state = {
+  role: '',
+  roleLabel: '',
+  roleIcon: '',
+  difficulty: 'beginner',
+  questions: [],
+  currentIdx: 0,
+  scores: [],
+  feedbacks: [],
+  loading: false,
+};
+
+/* ─── BOOT ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  renderRoleGrid();
+});
+
+function renderRoleGrid() {
+  const grid = document.getElementById('rolesGrid');
+  grid.innerHTML = ROLES.map(r => `
+    <div class="role-card" data-role="${r.id}" onclick="selectRole(this,'${r.id}')">
+      <span class="role-card-icon">${r.icon}</span>
+      <div class="role-card-title">${r.title}</div>
+      <div class="role-card-count">${r.count}</div>
+    </div>
+  `).join('');
+}
+
+/* ─── DIFFICULTY ──────────────────────────────────────── */
+function setDiff(btn) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.difficulty = btn.dataset.diff;
+}
+
+/* ─── ROLE SELECTION ─────────────────────────────────── */
+function selectRole(card, roleId) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.role = roleId;
+  const r = ROLES.find(r => r.id === roleId);
+  state.roleLabel = r.title;
+  state.roleIcon  = r.icon;
+  const customWrap = document.getElementById('customWrap');
+  if (roleId === 'custom') {
+    customWrap.style.display = 'block';
+    document.getElementById('startBtn').disabled = true;
+  } else {
+    customWrap.style.display = 'none';
+    document.getElementById('startBtn').disabled = false;
+  }
+}
+
+function onCustomInput() {
+  const val = document.getElementById('customRoleInput').value.trim();
+  state.roleLabel = val || 'Custom Role';
+  document.getElementById('startBtn').disabled = val.length < 2;
+}
+
+/* ─── BUILD QUESTION SET ─────────────────────────────── */
+function buildQuestions() {
+  if (state.role === 'custom') {
+    // Generic questions for custom roles
+    return buildGenericQuestions();
+  }
+  const pool = (QB[state.role] || []).filter(q => q.diff === state.difficulty);
+  // If not enough questions for that difficulty, supplement with adjacent difficulty
+  let final = pool.length >= 5 ? pool : [...pool, ...QB[state.role].filter(q => q.diff !== state.difficulty)];
+  return shuffle(final).slice(0, 5);
+}
+
+function buildGenericQuestions() {
+  const cats = [
+    { q:`Tell me about yourself and your experience relevant to the ${state.roleLabel} position.`, cat:'Introduction', diff:state.difficulty },
+    { q:`What skills and experience do you bring that make you a strong candidate for this ${state.roleLabel} role?`, cat:'Technical', diff:state.difficulty },
+    { q:`Describe a significant challenge you faced at work and how you overcame it.`, cat:'Behavioral', diff:state.difficulty },
+    { q:`Tell me about a time you had to work closely with a difficult colleague or stakeholder. How did you handle it?`, cat:'Situational', diff:state.difficulty },
+    { q:`Where do you see yourself professionally in three years, and how does this role fit that vision?`, cat:'Communication', diff:state.difficulty },
+  ];
+  return cats;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ─── START INTERVIEW ────────────────────────────────── */
+function startInterview() {
+  state.questions   = buildQuestions();
+  state.currentIdx  = 0;
+  state.scores      = [];
+  state.feedbacks   = [];
+
+  // Header
+  document.getElementById('headerRole').textContent = `${state.roleIcon} ${state.roleLabel}`;
+  document.getElementById('headerDiff').textContent = state.difficulty;
+
+  showScreen('interview');
+  loadQuestion();
+}
+
+/* ─── LOAD QUESTION ─────────────────────────────────── */
+function loadQuestion() {
+  const q = state.questions[state.currentIdx];
+  const total = state.questions.length;
+  const current = state.currentIdx + 1;
+
+  // Progress
+  const pct = ((current - 1) / total) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `Question ${current} of ${total}`;
+
+  // Meta
+  document.getElementById('qNum').textContent = `Q${current}`;
+  document.getElementById('qCategory').textContent = q.cat;
+
+  // Reset answer area
+  document.getElementById('answerBox').value = '';
+  document.getElementById('answerBox').disabled = false;
+  document.getElementById('wordCount').textContent = '0';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submitBtn').textContent = 'Get feedback';
+  document.getElementById('meterBar').style.width = '0%';
+  document.getElementById('meterVal').textContent = '—';
+  document.getElementById('feedbackPanel').classList.remove('visible');
+
+  // Next button label
+  document.getElementById('nextQBtn').textContent =
+    state.currentIdx >= total - 1 ? 'See my results →' : 'Next question →';
+
+  typeQuestion(q.q);
+}
+
+function typeQuestion(text) {
+  const el = document.getElementById('qText');
+  el.innerHTML = '';
+  let i = 0;
+  const speed = Math.max(10, Math.floor(700 / text.length));
+  function tick() {
+    if (i < text.length) {
+      el.innerHTML = escapeHtml(text.slice(0, i + 1)) + '<span class="q-cursor"></span>';
+      i++;
+      setTimeout(tick, speed);
+    } else {
+      el.textContent = text;
+    }
+  }
+  tick();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── ANSWER INPUT ─────────────────────────────────── */
+function onAnswerType() {
+  const val = document.getElementById('answerBox').value;
+  const words = val.trim() ? val.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = words;
+  document.getElementById('submitBtn').disabled = words < 10;
+
+  // Live strength meter
+  let score = 0;
+  score += Math.min(55, Math.round((words / 120) * 55));
+  if (val.includes('.')) score += 10;
+  if (words > 50)  score += 10;
+  if (words > 100) score += 15;
+  if (val.includes('example') || val.includes('time') || val.includes('when')) score += 10;
+  score = Math.min(100, score);
+
+  const bar = document.getElementById('meterBar');
+  bar.style.width  = score + '%';
+  bar.style.background = score > 70 ? '#27AE60' : score > 45 ? '#2F80ED' : '#F2994A';
+  document.getElementById('meterVal').textContent = score + '%';
+}
+
+/* ─── SUBMIT ANSWER ─────────────────────────────────── */
+async function submitAnswer() {
+  if (state.loading) return;
+  state.loading = true;
+
+  const answer   = document.getElementById('answerBox').value.trim();
+  const question = state.questions[state.currentIdx];
+
+  document.getElementById('submitBtn').innerHTML = '<span class="spinner"></span> Analysing…';
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('answerBox').disabled = true;
+
+  const prompt = `You are an expert interview coach. Evaluate the candidate's interview answer.
+
+Role: ${state.roleLabel}
+Difficulty level: ${state.difficulty}
+Question category: ${question.cat}
+Question: "${question.q}"
+Candidate's answer: "${answer}"
+
+Return ONLY a JSON object (no markdown, no extra text):
+{
+  "score": 7,
+  "tags": ["Clear example", "Lacked specifics"],
+  "tag_types": ["pos", "neg"],
+  "strengths": "2-3 sentences on what the candidate did well. Be specific.",
+  "weaknesses": "2-3 sentences on clear gaps or missed opportunities. Be honest.",
+  "suggestion": "One concrete, actionable improvement for next time.",
+  "example": "A 2-3 sentence example of what a stronger answer would sound like, written in first person as if the candidate is speaking."
+}
+
+Score 1-10. Be calibrated to the difficulty level (${state.difficulty}). Tags: 2-3 labels, max 4 words each.`;
+
+  let result;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const data = await res.json();
+    let text = (data.content || []).map(c => c.text || '').join('');
+    text = text.replace(/```json|```/g, '').trim();
+    result = JSON.parse(text);
+  } catch (e) {
+    result = {
+      score: 6,
+      tags: ['Answer received'],
+      tag_types: ['neu'],
+      strengths: 'You engaged with the question and provided a response.',
+      weaknesses: 'Adding a specific example with a measurable outcome would strengthen your answer considerably.',
+      suggestion: 'Try using the STAR method: Situation, Task, Action, Result.',
+      example: 'In my previous role, I faced a similar challenge. I approached it by [specific action], which led to [measurable outcome]. This taught me [key learning].',
+    };
+  }
+
+  state.scores.push(result.score);
+  state.feedbacks.push({ question, answer, result });
+  state.loading = false;
+
+  renderFeedback(result);
+}
+
+function renderFeedback(r) {
+  // Score badge
+  const badge = document.getElementById('fbScore');
+  badge.textContent = `${r.score}/10`;
+  badge.className   = 'fb-score ' + (r.score >= 8 ? 'hi' : r.score >= 6 ? 'mid' : 'lo');
+
+  // Tags
+  document.getElementById('fbTags').innerHTML = (r.tags || []).map((t, i) => {
+    const type = (r.tag_types || [])[i] || 'neu';
+    const cls  = type === 'pos' ? 'chip-green' : type === 'neg' ? 'chip-red' : 'chip-amber';
+    return `<span class="chip ${cls}">${t}</span>`;
+  }).join('');
+
+  document.getElementById('fbStrengths').textContent  = r.strengths  || '—';
+  document.getElementById('fbWeaknesses').textContent = r.weaknesses || '—';
+  document.getElementById('fbSuggestion').textContent = r.suggestion || '—';
+  document.getElementById('fbExample').textContent    = r.example    || '—';
+
+  document.getElementById('submitBtn').textContent = '✓ Feedback received';
+  document.getElementById('feedbackPanel').classList.add('visible');
+
+  // Scroll feedback into view
+  setTimeout(() => {
+    document.getElementById('feedbackPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+/* ─── NAVIGATION ─────────────────────────────────────── */
+function nextQuestion() {
+  state.currentIdx++;
+  if (state.currentIdx >= state.questions.length) {
+    showResults();
+  } else {
+    document.getElementById('feedbackPanel').classList.remove('visible');
+    document.getElementById('submitBtn').textContent = 'Get feedback';
+    loadQuestion();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function skipQuestion() {
+  state.scores.push(0);
+  state.feedbacks.push({ question: state.questions[state.currentIdx], answer: '[skipped]', result: null });
+  state.currentIdx++;
+  if (state.currentIdx >= state.questions.length) {
+    showResults();
+  } else {
+    loadQuestion();
+  }
+}
+
+/* ─── RESULTS ────────────────────────────────────────── */
+function showResults() {
+  const answered = state.scores.filter(s => s > 0);
+  const avg = answered.length
+    ? Math.round((answered.reduce((a, b) => a + b, 0) / answered.length) * 10) / 10
+    : 0;
+
+  // Grade
+  let grade, gradeClass, verdict, subtitle;
+  if (avg >= 8.5) {
+    grade = 'A'; gradeClass = 'A';
+    verdict  = 'Outstanding';
+    subtitle = 'You\'re very well prepared. Go into that interview with confidence.';
+  } else if (avg >= 7) {
+    grade = 'B+'; gradeClass = 'B';
+    verdict  = 'Strong performance';
+    subtitle = 'You\'re ready. A few areas to polish before the real thing.';
+  } else if (avg >= 5.5) {
+    grade = 'C+'; gradeClass = 'C';
+    verdict  = 'Needs more practice';
+    subtitle = 'Good foundation. Focus on specific examples and structure.';
+  } else {
+    grade = 'D'; gradeClass = 'D';
+    verdict  = 'Keep practising';
+    subtitle = 'Don\'t be discouraged. Review the feedback and try again.';
+  }
+
+  document.getElementById('resultsRole').textContent    = `${state.roleIcon}  ${state.roleLabel} · ${state.difficulty}`;
+  document.getElementById('resultsGrade').textContent   = grade;
+  document.getElementById('resultsGrade').className     = 'results-grade ' + gradeClass;
+  document.getElementById('resultsVerdict').textContent = verdict;
+  document.getElementById('resultsSubtitle').textContent = subtitle;
+
+  // Skill analysis from feedbacks
+  const allFeedbacks = state.feedbacks.filter(f => f.result);
+  const strong = [];
+  const weak   = [];
+
+  allFeedbacks.forEach(f => {
+    if (f.result.score >= 7) strong.push(f.question.cat);
+    else if (f.result.score < 6) weak.push(f.question.cat);
+  });
+
+  const uniqStrong = [...new Set(strong)].slice(0, 3);
+  const uniqWeak   = [...new Set(weak)].slice(0, 3);
+
+  document.getElementById('strongSkills').innerHTML = uniqStrong.length
+    ? uniqStrong.map(s => `<div class="results-skill">${s}</div>`).join('')
+    : '<div class="results-skill" style="color:var(--t3)">Complete more questions for insights</div>';
+
+  document.getElementById('weakSkills').innerHTML = uniqWeak.length
+    ? uniqWeak.map(s => `<div class="results-skill">${s}</div>`).join('')
+    : '<div class="results-skill" style="color:var(--t3)">No major weak areas identified</div>';
+
+  // Score breakdown
+  const dims = [
+    { label: 'Technical accuracy',   pct: clamp(avg - 0.3 + rand(-1, 1)) },
+    { label: 'Clarity & structure',  pct: clamp(avg + rand(-0.8, 0.8)) },
+    { label: 'Use of examples',      pct: clamp(avg - 0.7 + rand(-0.5, 1)) },
+    { label: 'Role-specific depth',  pct: clamp(avg + rand(-1, 0.5)) },
+    { label: 'Overall impression',   pct: avg },
+  ];
+
+  document.getElementById('scoreRows').innerHTML = dims.map(d => {
+    const val = Math.max(0.5, Math.round(d.pct * 10) / 10);
+    return `<div class="srow">
+      <span class="srow-lbl">${d.label}</span>
+      <div class="srow-bar"><div class="srow-fill" style="width:${(val/10)*100}%"></div></div>
+      <span class="srow-val">${val.toFixed(1)}</span>
+    </div>`;
+  }).join('');
+
+  // Recommendations
+  const recs = buildRecommendations(avg, uniqWeak, state.difficulty);
+  document.getElementById('recsList').innerHTML = recs.map((r, i) =>
+    `<div class="rec-item"><span class="rec-num">${String(i+1).padStart(2,'0')}</span><span>${r}</span></div>`
+  ).join('');
+
+  showScreen('results');
+
+  // Animate bars in
+  setTimeout(() => {
+    document.querySelectorAll('.srow-fill').forEach((el, i) => {
+      const val = dims[i].pct;
+      el.style.width = ((Math.max(0.5, val)/10)*100) + '%';
+    });
+  }, 100);
+}
+
+function buildRecommendations(avg, weakCats, diff) {
+  const recs = [];
+  if (avg < 6) recs.push('Practise the STAR method (Situation, Task, Action, Result) for every behavioural question.');
+  if (weakCats.includes('Technical')) recs.push(`Review core ${state.roleLabel} concepts and prepare to explain them clearly with examples.`);
+  if (weakCats.includes('Communication') || weakCats.includes('Situational'))
+    recs.push('Work on structuring your answers — open with the context, state what you did, and close with the outcome.');
+  if (avg < 7.5) recs.push('Add at least one specific, quantified result to each answer (e.g. "improved X by 30%").');
+  if (diff === 'beginner') recs.push('Move up to Intermediate difficulty and repeat the practice session.');
+  if (diff === 'intermediate') recs.push('Try Advanced difficulty to stretch your preparation.');
+  if (diff === 'advanced') recs.push('Consider mock interviews with a colleague to practise speaking your answers aloud.');
+  recs.push('Review the feedback on your weakest question and write an improved answer before your interview.');
+  return recs.slice(0, 4);
+}
+
+function clamp(n) { return Math.max(1, Math.min(10, n)); }
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+/* ─── COPY RESULTS ─────────────────────────────────── */
+function copyResults() {
+  const answered = state.scores.filter(s => s > 0);
+  const avg = answered.length
+    ? (answered.reduce((a,b)=>a+b,0)/answered.length).toFixed(1) : '0';
+  const text = [
+    `🎯 AI Interview Coach Results`,
+    `Role: ${state.roleLabel} (${state.difficulty})`,
+    `Average score: ${avg}/10`,
+    ``,
+    `Questions answered: ${state.feedbacks.length}`,
+    ``,
+    `Practise free at InterviewCoach.ai`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).catch(()=>{});
+  const btn = event.target;
+  btn.textContent = '✓ Copied to clipboard';
+  setTimeout(() => btn.textContent = '📋 Copy results to share', 2500);
+}
+
+/* ─── SCREEN TRANSITIONS ─────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goHome()        { showScreen('landing'); }
+function retryInterview(){ startInterview(); }
+</script>
+</body>
+</html>
